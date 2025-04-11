@@ -11,7 +11,6 @@
     
     <pre><code class="language-python">import heapq
 
-# Graph representation
 graph = {'A': [['B', 2], ['E', 3]],
         'B': [['C', 1], ['G', 9]],
         'G': [['D', 1]],
@@ -19,17 +18,13 @@ graph = {'A': [['B', 2], ['E', 3]],
         'D': [['G', 1]],
         'C': []}
 
-# Heuristic values (estimated cost to reach 'G')
 heuristic = {'A': 11, 'B': 6, 'E': 7, 'D': 1, 'C': 99, 'G': 0}
 
 def AStarSearch(start, goal):
-    """A* search algorithm to find the optimal path from start to goal."""
     
-    # Priority queue (min-heap) for opened nodes
     opened = []
     heapq.heappush(opened, (heuristic[start], 0, start, []))  # (f(n), g(n), node, path)
 
-    # Cost dictionary (tracks actual cost g(n))
     cost = {start: 0}
 
     while opened:
@@ -49,11 +44,9 @@ def AStarSearch(start, goal):
                 heapq.heappush(opened, (f, new_cost, neighbor, path))  # Push updated path
 
     return None, float('inf')  # No path found
-
-# Run A* Search from 'A' to 'G'
+=
 optimal_path, total_cost = AStarSearch('A', 'G')
 
-# Print results
 if optimal_path:
     print(f"Optimal Path: {' → '.join(optimal_path)}")
     print(f"Total Cost: {total_cost}")
