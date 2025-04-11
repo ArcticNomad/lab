@@ -165,5 +165,44 @@ if result:
 else:
     print(f"No path found from {start_node} to {goal_node}")
     </code></pre>
+
+     <h1>UCS</h1>
+    
+    <pre><code class="language-python">
+        Romania = {
+    'Arad': ['Timisoara', 'Sibiu', 'Zerind'],
+    'Timisoara': ['Lugoj'],
+    'Sibiu': ['Rimnicu', 'Fagaras', 'Oradea'],
+    'Zerind': ['Oradea'],
+    'Lugoj': ['Mehadia'],
+    'Rimnicu': ['Craiova', 'Pitesti'],
+    'Fagaras': ['Bucharest'],
+    'Oradea': ['Sibiu', 'Zerind'],
+    'Mehadia': ['Drobeta'],
+    'Craiova': ['Drobeta', 'Pitesti'],
+    'Pitesti': ['Bucharest'],
+    'Bucharest': [],
+    'Drobeta': []
+}
+
+def dfs(Romania, start, visited):
+    stack = [start]
+    dfs_order = []  # To store the traversal order
+    
+    while stack:
+        node = stack.pop()
+        if node not in visited:
+            visited.append(node)
+            dfs_order.append(node)
+            # Push neighbors in reverse order to visit them left-to-right
+            for neighbor in reversed(Romania[node]):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+    
+    print("DFS Traversal Order:", dfs_order)
+
+visited = []
+dfs(Romania, 'Arad', visited)
+          </code></pre>
 </body>
 </html>
