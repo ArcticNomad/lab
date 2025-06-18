@@ -1,208 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>A* Search Algorithm</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Code Example</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
 </head>
 <body>
-    <h1>A* Search Algorithm Implementation</h1>
+    <h1>Server Code Example</h1>
+    <p>This is a simple Java server that calculates the sum of numbers from 1 to the provided number.</p>
     
-    <pre><code class="language-python">import heapq
+    <pre><code class="language-java">
+import java.io.*;
+import java.net.*;
 
-graph = {'A': [['B', 2], ['E', 3]],
-        'B': [['C', 1], ['G', 9]],
-        'G': [['D', 1]],
-        'E': [['D', 6]],
-        'D': [['G', 1]],
-        'C': []}
+public class Server {
+    public static void main(String[] args) {
+        try (BufferedReader console = new BufferedReader(new InputStreamReader(System.in))) {
+            System.out.print("Enter port number to start the server: ");
+            int port = Integer.parseInt(console.readLine());
 
-heuristic = {'A': 11, 'B': 6, 'E': 7, 'D': 1, 'C': 99, 'G': 0}
+            ServerSocket serverSocket = new ServerSocket(port);
+            System.out.println("Server started on port " + port + ", waiting for client...");
 
-def AStarSearch(start, goal):
-    
-    opened = []
-    heapq.heappush(opened, (heuristic[start], 0, start, []))  # (f(n), g(n), node, path)
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected: " + clientSocket.getInetAddress());
 
-    cost = {start: 0}
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 
-    while opened:
-        _, g, node, path = heapq.heappop(opened)  # Get node with lowest f(n)
+            String inputLine;
+            while ((inputLine = in.readLine()) != null) {
+                if (inputLine.equalsIgnoreCase("exit")) {
+                    System.out.println("Client disconnected.");
+                    break;
+                }
 
-        path = path + [node]  # Add current node to path
-        
-        if node == goal:  # Goal found
-            return path, g  # Return optimal path and cost
+                try {
+                    int number = Integer.parseInt(inputLine);
+                    int sum = calculateSum(number);
+                    out.println("Sum from 1 to " + number + " is: " + sum);
+                } catch (NumberFormatException e) {
+                    out.println("Invalid input. Please enter an integer.");
+                }
+            }
 
-        for neighbor, weight in graph.get(node, []):
-            new_cost = g + weight  # g(n) = cost so far + edge weight
+            clientSocket.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-            if neighbor not in cost or new_cost < cost[neighbor]:  # Found better path
-                cost[neighbor] = new_cost
-                f = new_cost + heuristic[neighbor]  # f(n) = g(n) + h(n)
-                heapq.heappush(opened, (f, new_cost, neighbor, path))  # Push updated path
-
-    return None, float('inf')  # No path found
-=
-optimal_path, total_cost = AStarSearch('A', 'G')
-
-if optimal_path:
-    print(f"Optimal Path: {' → '.join(optimal_path)}")
-    print(f"Total Cost: {total_cost}")
-else:
-    print("No path found!")</code></pre>
-
-    <h1>IDDFS</h1>
-    
-    <pre><code class="language-python">import heapq
-
-graph = {
-    'A': ['B', 'C'],
-    'B': ['D', 'E'],
-    'C': ['G'],
-    'D': [],
-    'E': ['F'],
-    'G': ['H'],
-    'F': [],
-    'H': [],
+    private static int calculateSum(int n) {
+        if (n > 0)
+            return n * (n + 1) / 2; // Efficient positive sum
+        else
+            return (n * (1 - n)) / 2; // Efficient negative sum
+    }
 }
-
-path = list()  # This will store the final correct path
-
-def DFS(start, goal, graph, maxDepth, curList):
-    print("The Route of IDDFS is", start)
-    curList.append(start)  # Append current node to the path
-    
-    if start == goal:
-        path.extend(curList)  # Save the found path
-        return True
-    
-    if maxDepth <= 0:
-        return False
-    
-    for node in graph[start]:
-        if DFS(node, goal, graph, maxDepth - 1, curList):
-            return True
-        
-    curList.pop()  # Backtrack
-    return False
-
-def IDDFS(start, goal, graph, maxDepth):
-    for i in range(maxDepth + 1):
-        print("New Iteration at depth:", i)
-        curList = list()
-        if DFS(start, goal, graph, i, curList):
-            return True
-    return False
-
-if not IDDFS('A', 'G', graph, 4):
-    print("Path does not exist")
-else:
-    print("A path is", path)</code></pre>
-
-    <h1>UCS</h1>
-    
-    <pre><code class="language-python">
-        import heapq
-
-        # Example graph represented as an adjacency list
-graph = {
-    'A': [('B', 1), ('C', 4)],
-    'B': [('D', 1), ('E', 3)],
-    'C': [('F', 5)],
-    'D': [('G', 2)],
-    'E': [('G', 1)],
-    'F': [('G', 2)],
-    'G': []
-}
-
-def uniform_cost_search(graph, start, goal):
-    # Priority queue to store the frontier nodes, initialized with the start node
-    priority_queue = [(0, start)]
-    # Dictionary to store the cost of the shortest path to each node
-    visited = {start: (0, None)}
-    
-    while priority_queue:
-        # Pop the node with the lowest cost from the priority queue
-        current_cost, current_node = heapq.heappop(priority_queue)
-        
-        # If we reached the goal, return the total cost and the path
-        if current_node == goal:
-            return current_cost, reconstruct_path(visited, start, goal)
-        
-        # Explore the neighbors
-        for neighbor, cost in graph[current_node]:
-            total_cost = current_cost + cost
-            # Check if this path to the neighbor is better than any previously found
-            if neighbor not in visited or total_cost < visited[neighbor][0]:
-                visited[neighbor] = (total_cost, current_node)
-                heapq.heappush(priority_queue, (total_cost, neighbor))
-    
-    # If the goal is not reachable, return None
-    return None
-
-def reconstruct_path(visited, start, goal):
-    # Reconstruct the path from start to goal by following the visited nodes
-    path = []
-    current = goal
-    while current is not None:
-        path.append(current)
-        current = visited[current][1]  # Get the parent node
-    path.reverse()
-    return path
-
-
-
-# Example usage of the UCS function
-start_node = 'A'
-goal_node = 'G'
-result = uniform_cost_search(graph, start_node, goal_node)
-
-if result:
-    total_cost, path = result
-    print(f"Least cost path from {start_node} to {goal_node}: {' -> '.join(path)} with total cost {total_cost}")
-else:
-    print(f"No path found from {start_node} to {goal_node}")
     </code></pre>
 
-     <h1>UCS</h1>
-    
-    <pre><code class="language-python">
-        Romania = {
-    'Arad': ['Timisoara', 'Sibiu', 'Zerind'],
-    'Timisoara': ['Lugoj'],
-    'Sibiu': ['Rimnicu', 'Fagaras', 'Oradea'],
-    'Zerind': ['Oradea'],
-    'Lugoj': ['Mehadia'],
-    'Rimnicu': ['Craiova', 'Pitesti'],
-    'Fagaras': ['Bucharest'],
-    'Oradea': ['Sibiu', 'Zerind'],
-    'Mehadia': ['Drobeta'],
-    'Craiova': ['Drobeta', 'Pitesti'],
-    'Pitesti': ['Bucharest'],
-    'Bucharest': [],
-    'Drobeta': []
+        <pre><code class="language-java">
+import java.io.*;
+import java.net.*;
+
+public class Client {
+    public static void main(String[] args) {
+        try (
+                BufferedReader console = new BufferedReader(new InputStreamReader(System.in))
+        ) {
+            System.out.print("Enter server IP address: ");
+            String serverIP = console.readLine();
+
+            System.out.print("Enter server port number: ");
+            int port = Integer.parseInt(console.readLine());
+
+            Socket socket = new Socket(serverIP, port);
+            System.out.println("Connected to the server at " + serverIP + ":" + port);
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            String userInput;
+            while (true) {
+                System.out.print("Enter a positive/negative integer (or 'Exit' to quit): ");
+                userInput = console.readLine();
+                out.println(userInput);
+
+                if (userInput.equalsIgnoreCase("exit")) {
+                    System.out.println("Exiting client...");
+                    break;
+                }
+
+                String response = in.readLine();
+                System.out.println("Server response: " + response);
+            }
+
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
-def dfs(Romania, start, visited):
-    stack = [start]
-    dfs_order = []  # To store the traversal order
-    
-    while stack:
-        node = stack.pop()
-        if node not in visited:
-            visited.append(node)
-            dfs_order.append(node)
-            # Push neighbors in reverse order to visit them left-to-right
-            for neighbor in reversed(Romania[node]):
-                if neighbor not in visited:
-                    stack.append(neighbor)
-    
-    print("DFS Traversal Order:", dfs_order)
-
-visited = []
-dfs(Romania, 'Arad', visited)
-          </code></pre>
+    </code></pre>
 </body>
 </html>
