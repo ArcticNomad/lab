@@ -58,6 +58,42 @@ if solution:
     </code></pre>
 
 
+     <h1>Hill Climb</h1>
+    <pre><code class="language-python">
+graph = {
+    'A': {'value': 10, 'children': ['B', 'C', 'D']},
+    'B': {'value': 20, 'children': []},
+    'C': {'value': 30, 'children': ['E', 'F']},
+    'D': {'value': 15, 'children': []},
+    'E': {'value': 35, 'children': []},
+    'F': {'value': 25, 'children': []} 
+}
+
+# Hill Climbing Algorithm
+def hill_climbing(graph, start_node):
+    current_node = start_node
+    while True:
+        # Get children of the current node
+        children = graph[current_node]['children']
+        if not children:
+            return current_node  # No children, return the current node (local optimum)
+        
+        # Find the best child by comparing values
+        best_child = max(children, key=lambda child: graph[child]['value'])
+        
+        # If the best child's value is less than or equal to the current node's value, stop
+        if graph[best_child]['value'] <= graph[current_node]['value']:
+            return current_node
+        
+        # Move to the best child
+        current_node = best_child
+
+# Perform hill climbing starting from the root node 'A'
+result = hill_climbing(graph, 'A')
+print(f"Reached node with value: {graph[result]['value']} (Node: {result})")
+    </code></pre>
+
+
      <h1>8 Queen</h1>
     <pre><code class="language-python">
 import random
