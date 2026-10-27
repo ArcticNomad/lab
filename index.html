@@ -3,223 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Australia Map Coloring - CSP Example</title>
+    <title>Digital Image Processing Labs</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
 </head>
 <body>
-    <h1>Australia Map Coloring using CSP</h1>
-    <pre><code class="language-python">
-# === Australia Map Coloring using CSP (Backtracking) ===
 
-# Define the map
-australia_map = {
-    'WA': ['NT', 'SA'],
-    'NT': ['WA', 'SA', 'Q'],
-    'SA': ['WA', 'NT', 'Q', 'NSW', 'V'],
-    'Q': ['NT', 'SA', 'NSW'],
-    'NSW': ['Q', 'SA', 'V'],
-    'V': ['SA', 'NSW'],
-    'T': []  # Tasmania
-}
+    <h1>Lab 1: RGB Components and Grayscale</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
 
-# Available colors
-colors = ['Red', 'Green', 'Blue']
+i = imread('basket.jpeg'); 
+subplot(3,2,1); imshow(i); title('Original Image'); 
 
-# Check if color assignment is valid
-def is_valid(assignment, state, color):
-    return all(assignment.get(neighbor) != color for neighbor in australia_map[state])
+r = i(:,:,1); 
+subplot(3,2,2); imshow(r); title('Red Component'); 
 
-# Backtracking CSP
-def backtrack(assignment):
-    if len(assignment) == len(australia_map):
-        return assignment
+g = i(:,:,2); 
+subplot(3,2,3); imshow(g); title('Green Component'); 
 
-    unassigned = [s for s in australia_map if s not in assignment]
-    state = unassigned[0]
+b = i(:,:,3); 
+subplot(3,2,4); imshow(b); title('Blue Component'); 
 
-    for color in colors:
-        if is_valid(assignment, state, color):
-            assignment[state] = color
-            result = backtrack(assignment)
-            if result:
-                return result
-            del assignment[state]  # Backtrack
-
-    return None
-
-# Run solver
-solution = backtrack({})
-print("Australia Map Coloring Solution:" if solution else "No solution found.")
-if solution:
-    for state in sorted(solution):
-        print(f"{state}: {solution[state]}")
+rg = rgb2gray(i); 
+subplot(3,2,5); imshow(rg); title('Gray Image');
     </code></pre>
 
+    <h1>Lab 2: Traffic Light Detection</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
 
-     <h1>Hill Climb</h1>
-    <pre><code class="language-python">
-graph = {
-    'A': {'value': 10, 'children': ['B', 'C', 'D']},
-    'B': {'value': 20, 'children': []},
-    'C': {'value': 30, 'children': ['E', 'F']},
-    'D': {'value': 15, 'children': []},
-    'E': {'value': 35, 'children': []},
-    'F': {'value': 25, 'children': []} 
-}
+I = imread('tf5.jpg');
 
-# Hill Climbing Algorithm
-def hill_climbing(graph, start_node):
-    current_node = start_node
-    while True:
-        # Get children of the current node
-        children = graph[current_node]['children']
-        if not children:
-            return current_node  # No children, return the current node (local optimum)
-        
-        # Find the best child by comparing values
-        best_child = max(children, key=lambda child: graph[child]['value'])
-        
-        # If the best child's value is less than or equal to the current node's value, stop
-        if graph[best_child]['value'] <= graph[current_node]['value']:
-            return current_node
-        
-        # Move to the best child
-        current_node = best_child
+subplot(2,2,1);
+imshow(I);
+title('Original Image');
 
-# Perform hill climbing starting from the root node 'A'
-result = hill_climbing(graph, 'A')
-print(f"Reached node with value: {graph[result]['value']} (Node: {result})")
+R = I(:,:,1);
+G = I(:,:,2);
+B = I(:,:,3);
+
+R = double(R);
+G = double(G);
+B = double(B);
+
+redMask = (R > 150) & (R > G*1.3) & (R > B*1.3);
+subplot(2,2,2);
+imshow(redMask);
+title('Red Signal');
+
+yellowMask = (R > 150) & (G > 120) & (B < 100);
+subplot(2,2,3);
+imshow(yellowMask);
+title('Yellow Signal');
+
+greenMask = (G > 100) & (G > R*1.2) & (G > B*1.2);
+subplot(2,2,4);
+imshow(greenMask);
+title('Green Signal');
+
+redPixels = sum(redMask(:));
+yellowPixels = sum(yellowMask(:));
+greenPixels = sum(greenMask(:));
+
+minPixels = 50;
+
+if redPixels > minPixels && redPixels > yellowPixels && redPixels > greenPixels
+    disp('RED traffic light detected');
+elseif yellowPixels > minPixels && yellowPixels > redPixels && yellowPixels > greenPixels
+    disp('YELLOW traffic light detected');
+elseif greenPixels > minPixels && greenPixels > redPixels && greenPixels > yellowPixels
+    disp('GREEN traffic light detected');
+else
+    disp('No traffic light detected');
+end
     </code></pre>
 
+    <h1>Lab 3: Neighbours of a Pixel</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
 
-     <h1>8 Queen</h1>
-    <pre><code class="language-python">
-import random
+siz = input('Enter size of matrix: ');
+a = magic(siz);
+disp('a = ');
+disp(a);
 
-# Parameters
-POPULATION_SIZE = 100
-CHROMOSOME_LENGTH = 8
-MUTATION_RATE = 0.1
-TOURNAMENT_SIZE = 5
-GENERATIONS = 1000
+x = input('Enter the row (1 to size): ');
+y = input('Enter the column (1 to size): ');
 
-# Generate a random permutation chromosome (each column gets a random row)
-def generate_chromosome():
-    return [random.randint(0, 7) for _ in range(CHROMOSOME_LENGTH)]
+if x < 1 || x > siz || y < 1 || y > siz  
+    disp('You have entered a wrong index.');
+    return;
+end
 
-# Count attacking pairs
-def fitness(chromosome):
-    conflicts = 0
-    for i in range(CHROMOSOME_LENGTH):
-        for j in range(i + 1, CHROMOSOME_LENGTH):
-            if chromosome[i] == chromosome[j]:  # same row
-                conflicts += 1
-            elif abs(chromosome[i] - chromosome[j]) == abs(i - j):  # same diagonal
-                conflicts += 1
-    return 28 - conflicts  # 28 is the max non-attacking pairs
+disp('Element = ');
+disp(a(x,y));
 
-# Tournament selection
-def select_parent(population):
-    tournament = random.sample(population, TOURNAMENT_SIZE)
-    return max(tournament, key=fitness)
+N4 = [];
+N8 = [];
+ND = [];
 
-# Crossover: swap segments
-def crossover(parent1, parent2):
-    point = random.randint(1, CHROMOSOME_LENGTH - 2)
-    return parent1[:point] + parent2[point:]
+if x > 1
+    N4 = [N4, a(x-1,y)];
+end
+if x < siz
+    N4 = [N4, a(x+1,y)];
+end
+if y > 1
+    N4 = [N4, a(x,y-1)];
+end
+if y < siz
+    N4 = [N4, a(x,y+1)];
+end
 
-# Mutation: randomly change one queen's row
-def mutate(chromosome):
-    if random.random() < MUTATION_RATE:
-        idx = random.randint(0, CHROMOSOME_LENGTH - 1)
-        chromosome[idx] = random.randint(0, 7)
-    return chromosome
+if x > 1 && y > 1
+    ND = [ND, a(x-1,y-1)];
+end
+if x > 1 && y < siz
+    ND = [ND, a(x-1,y+1)];
+end
+if x < siz && y > 1
+    ND = [ND, a(x+1,y-1)];
+end
+if x < siz && y < siz
+    ND = [ND, a(x+1,y+1)];
+end
 
-# Main GA loop
-def genetic_algorithm():
-    population = [generate_chromosome() for _ in range(POPULATION_SIZE)]
+N8 = [N4, ND];
 
-    for generation in range(GENERATIONS):
-        new_population = []
-        for _ in range(POPULATION_SIZE):
-            parent1 = select_parent(population)
-            parent2 = select_parent(population)
-            child = crossover(parent1, parent2)
-            child = mutate(child)
-            new_population.append(child)
-
-        population = new_population
-        best = max(population, key=fitness)
-        print(f"Generation {generation+1}: Fitness = {fitness(best)} | Solution = {best}")
-
-        if fitness(best) == 28:
-            print(" Solution Found:", best)
-            break
-
-if __name__ == "__main__":
-    genetic_algorithm()
+disp('N4 = ');
+disp(N4);
+disp('ND = ');
+disp(ND);
+disp('N8 = ');
+disp(N8);
     </code></pre>
 
+    <h1>Lab 4: Complement and Arithmetic Operations</h1>
+    <pre><code class="language-matlab">
+clc;
+close all;
+clear;
 
-    
-     <h1>8 Queen</h1>
-    <pre><code class="language-python">
-board = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
+I=imread('single.jpeg'); 
+subplot(2,2,1); imshow(I);  title('Color Image'); 
+c=imcomplement(I); 
+subplot(2,2,2); imshow(c);  title('Complement of color Image'); 
+r=rgb2gray(I); 
+subplot(2,2,3); imshow(r);  title('Gray scale of color Image'); 
+b=imcomplement(r); 
+subplot(2,2,4); imshow(b); title('Complement of Gray Image'); 
 
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
-]
-
-# Function to check if a number is valid at a given position
-def is_valid(board, row, col, num):
-    for i in range(9):
-        if board[row][i] == num:  # Check row
-            return False
-        if board[i][col] == num:  # Check column
-            return False
-        # Check 3x3 square
-        if board[(row//3)*3 + i//3][(col//3)*3 + i%3] == num:
-            return False
-    return True
-
-# Backtracking solver
-def solve(board):
-    for row in range(9):
-        for col in range(9):
-            if board[row][col] == 0:  # Empty cell
-                for num in range(1, 10):
-                    if is_valid(board, row, col, num):
-                        board[row][col] = num
-                        if solve(board):
-                            return True
-                        board[row][col] = 0  # Undo move
-                return False
-    return True
-
-# Function to print the board
-def print_board(board):
-    for row in board:
-        print(" ".join(str(num) if num != 0 else "." for num in row))
-
-# Run and show results
-print("Original Sudoku:")
-print_board(board)
-
-if solve(board):
-    print("\nSolved Sudoku:")
-    print_board(board)
-else:
-    print("No solution found.")
+a=ones(40); b=zeros(40); 
+c=[a b;b a]; d=[b b;a a]; 
+A=(c+d); 
+M=c.*d; 
+S=c-d; 
+D=c/4; 
+figure; 
+subplot(3,2,1);  imshow(c); 
+subplot(3,2,2);  imshow(d); 
+subplot(3,2,3);  imshow(A); 
+subplot(3,2,4);  imshow(M); 
+subplot(3,2,5);  imshow(S); 
+subplot(3,2,6);  imshow(D);
     </code></pre>
+
+    <h1>Lab 5: Shape Drawing</h1>
+    <h2>Square</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r,c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if( abs(c_x - i) < myRadius && abs(c_y - j) < myRadius )
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h2>Disc</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if(sqrt((c_x-i)^2+(c_y-j)^2)<myRadius)
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h2>Diamond (correct condition)</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r,c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if( abs(c_x - i) + abs(c_y - j) < myRadius )
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h1>Lab 6: 5x5 Averaging Blur</h1>
+    <h2>Using imfilter</h2>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+img = imread('input.jpg');
+
+if size(img, 3) == 3
+    img = rgb2gray(img);
+end
+
+mask = ones(5,5) / 25;
+
+blurred_img = imfilter(img, mask, 'replicate');
+
+figure;
+subplot(1,2,1);
+imshow(img);
+title('Original Image');
+subplot(1,2,2);
+imshow(blurred_img);
+title('Blurred Image using 5x5 Averaging Mask');
+    </code></pre>
+
+    <h2>Manual Loop Implementation</h2>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+img = imread('input.jpg');
+
+if size(img, 3) == 3
+    img = rgb2gray(img);
+end
+
+[rows, cols] = size(img);
+mask = ones(5,5) / 25;
+blurred_img = zeros(rows, cols);
+p = 2;
+
+padded_img = zeros(rows + 2*p, cols + 2*p);
+padded_img(p+1:p+rows, p+1:p+cols) = double(img);
+
+for i = 1:rows
+    for j = 1:cols
+        neighborhood = padded_img(i:i+4, j:j+4);
+        sum_value = 0;
+        for m = 1:5
+            for n = 1:5
+                sum_value = sum_value + neighborhood(m,n) * mask(m,n);
+            end
+        end
+        blurred_img(i,j) = sum_value;
+    end
+end
+
+blurred_img = uint8(blurred_img);
+
+figure;
+subplot(1,2,1);
+imshow(img);
+title('Original Image');
+subplot(1,2,2);
+imshow(blurred_img);
+title('Blurred Image - 5x5 Averaging');
+    </code></pre>
+
+    <h1>Lab 7: Mirroring an Image</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+i=imread('myImage.JPG');
+subplot(3,2,1); imshow(i); title('originl image');
+
+[r,c,ch]=size(i);
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r_c, c - c_c + 1, ch_c);
+        end
+    end
+end
+
+subplot(3,2,2); imshow(mirrored_img); title('horizontal mirrored image');
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r-r_c+1, c_c, ch_c);
+        end
+    end
+end
+subplot(3,2,3); imshow(mirrored_img); title('vertical mirrored image');
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r-r_c+1, c-c_c+1, ch_c);
+        end
+    end
+end
+subplot(3,2,4); imshow(mirrored_img); title('mirrored image');
+    </code></pre>
+
 </body>
 </html>
