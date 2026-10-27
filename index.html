@@ -203,7 +203,348 @@ myRadius=30;
 [r c] =size(myImage);
 for i=1:1:r
     for j=1:1:c
-        if(sqrt((c_x-i)^2+(c_y-j)^2)<myRadius)
+        if(sqrt((c_x-i)^2+(c_y-j)^2) < myRadius)
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h2>Diamond (correct condition)</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r,c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if( abs(c_x - i) + abs(c_y - j) < myRadius )
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h1>Lab 6: 5x5 Averaging Blur</h1>
+    <h2>Using imfilter</h2>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+img = imread('input.jpg');
+
+if size(img, 3) == 3
+    img = rgb2gray(img);
+end
+
+mask = ones(5,5) / 25;
+
+blurred_img = imfilter(img, mask, 'replicate');
+
+figure;
+subplot(1,2,1);
+imshow(img);
+title('Original Image');
+subplot(1,2,2);
+imshow(blurred_img);
+title('Blurred Image using 5x5 Averaging Mask');
+    </code></pre>
+
+    <h2>Manual Loop Implementation</h2>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+img = imread('input.jpg');
+
+if size(img, 3) == 3
+    img = rgb2gray(img);
+end
+
+[rows, cols] = size(img);
+mask = ones(5,5) / 25;
+blurred_img = zeros(rows, cols);
+p = 2;
+
+padded_img = zeros(rows + 2*p, cols + 2*p);
+padded_img(p+1:p+rows, p+1:p+cols) = double(img);
+
+for i = 1:rows
+    for j = 1:cols
+        neighborhood = padded_img(i:i+4, j:j+4);
+        sum_value = 0;
+        for m = 1:5
+            for n = 1:5
+                sum_value = sum_value + neighborhood(m,n) * mask(m,n);
+            end
+        end
+        blurred_img(i,j) = sum_value;
+    end
+end
+
+blurred_img = uint8(blurred_img);
+
+figure;
+subplot(1,2,1);
+imshow(img);
+title('Original Image');
+subplot(1,2,2);
+imshow(blurred_img);
+title('Blurred Image - 5x5 Averaging');
+    </code></pre>
+
+    <h1>Lab 7: Mirroring an Image</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+i=imread('myImage.JPG');
+subplot(3,2,1); imshow(i); title('originl image');
+
+[r,c,ch]=size(i);
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r_c, c - c_c + 1, ch_c);
+        end
+    end
+end
+
+subplot(3,2,2); imshow(mirrored_img); title('horizontal mirrored image');
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r-r_c+1, c_c, ch_c);
+        end
+    end
+end
+subplot(3,2,3); imshow(mirrored_img); title('vertical mirrored image');
+
+for ch_c = 1:ch
+    for r_c = 1:r
+        for c_c = 1:c
+            mirrored_img(r_c, c_c, ch_c) = i(r-r_c+1, c-c_c+1, ch_c);
+        end
+    end
+end
+subplot(3,2,4); imshow(mirrored_img); title('mirrored image');
+    </code></pre>
+
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Image Processing Labs</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</head>
+<body>
+
+    <h1>Lab 1: RGB Components and Grayscale</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+i = imread('basket.jpeg'); 
+subplot(3,2,1); imshow(i); title('Original Image'); 
+
+r = i(:,:,1); 
+subplot(3,2,2); imshow(r); title('Red Component'); 
+
+g = i(:,:,2); 
+subplot(3,2,3); imshow(g); title('Green Component'); 
+
+b = i(:,:,3); 
+subplot(3,2,4); imshow(b); title('Blue Component'); 
+
+rg = rgb2gray(i); 
+subplot(3,2,5); imshow(rg); title('Gray Image');
+    </code></pre>
+
+    <h1>Lab 2: Traffic Light Detection</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+I = imread('tf5.jpg');
+
+subplot(2,2,1);
+imshow(I);
+title('Original Image');
+
+R = I(:,:,1);
+G = I(:,:,2);
+B = I(:,:,3);
+
+R = double(R);
+G = double(G);
+B = double(B);
+
+redMask = (R > 150) & (R > G*1.3) & (R > B*1.3);
+subplot(2,2,2);
+imshow(redMask);
+title('Red Signal');
+
+yellowMask = (R > 150) & (G > 120) & (B < 100);
+subplot(2,2,3);
+imshow(yellowMask);
+title('Yellow Signal');
+
+greenMask = (G > 100) & (G > R*1.2) & (G > B*1.2);
+subplot(2,2,4);
+imshow(greenMask);
+title('Green Signal');
+
+redPixels = sum(redMask(:));
+yellowPixels = sum(yellowMask(:));
+greenPixels = sum(greenMask(:));
+
+minPixels = 50;
+
+if redPixels > minPixels && redPixels > yellowPixels && redPixels > greenPixels
+    disp('RED traffic light detected');
+elseif yellowPixels > minPixels && yellowPixels > redPixels && yellowPixels > greenPixels
+    disp('YELLOW traffic light detected');
+elseif greenPixels > minPixels && greenPixels > redPixels && greenPixels > yellowPixels
+    disp('GREEN traffic light detected');
+else
+    disp('No traffic light detected');
+end
+    </code></pre>
+
+    <h1>Lab 3: Neighbours of a Pixel</h1>
+    <pre><code class="language-matlab">
+clc;
+clear;
+close all;
+
+siz = input('Enter size of matrix: ');
+a = magic(siz);
+disp('a = ');
+disp(a);
+
+x = input('Enter the row (1 to size): ');
+y = input('Enter the column (1 to size): ');
+
+if x < 1 || x > siz || y < 1 || y > siz  
+    disp('You have entered a wrong index.');
+    return;
+end
+
+disp('Element = ');
+disp(a(x,y));
+
+N4 = [];
+N8 = [];
+ND = [];
+
+if x > 1
+    N4 = [N4, a(x-1,y)];
+end
+if x < siz
+    N4 = [N4, a(x+1,y)];
+end
+if y > 1
+    N4 = [N4, a(x,y-1)];
+end
+if y < siz
+    N4 = [N4, a(x,y+1)];
+end
+
+if x > 1 && y > 1
+    ND = [ND, a(x-1,y-1)];
+end
+if x > 1 && y < siz
+    ND = [ND, a(x-1,y+1)];
+end
+if x < siz && y > 1
+    ND = [ND, a(x+1,y-1)];
+end
+if x < siz && y < siz
+    ND = [ND, a(x+1,y+1)];
+end
+
+N8 = [N4, ND];
+
+disp('N4 = ');
+disp(N4);
+disp('ND = ');
+disp(ND);
+disp('N8 = ');
+disp(N8);
+    </code></pre>
+
+    <h1>Lab 4: Complement and Arithmetic Operations</h1>
+    <pre><code class="language-matlab">
+clc;
+close all;
+clear;
+
+I=imread('single.jpeg'); 
+subplot(2,2,1); imshow(I);  title('Color Image'); 
+c=imcomplement(I); 
+subplot(2,2,2); imshow(c);  title('Complement of color Image'); 
+r=rgb2gray(I); 
+subplot(2,2,3); imshow(r);  title('Gray scale of color Image'); 
+b=imcomplement(r); 
+subplot(2,2,4); imshow(b); title('Complement of Gray Image'); 
+
+a=ones(40); b=zeros(40); 
+c=[a b;b a]; d=[b b;a a]; 
+A=(c+d); 
+M=c.*d; 
+S=c-d; 
+D=c/4; 
+figure; 
+subplot(3,2,1);  imshow(c); 
+subplot(3,2,2);  imshow(d); 
+subplot(3,2,3);  imshow(A); 
+subplot(3,2,4);  imshow(M); 
+subplot(3,2,5);  imshow(S); 
+subplot(3,2,6);  imshow(D);
+    </code></pre>
+
+    <h1>Lab 5: Shape Drawing</h1>
+    <h2>Square</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r,c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if( abs(c_x - i) < myRadius && abs(c_y - j) < myRadius )
+            myImage(i, j) = 255;
+        end
+    end
+end
+imshow(myImage);
+    </code></pre>
+
+    <h2>Disc</h2>
+    <pre><code class="language-matlab">
+myImage=zeros(200,200);
+c_x=100;
+c_y=100;
+myRadius=30;
+[r c] =size(myImage);
+for i=1:1:r
+    for j=1:1:c
+        if(sqrt((c_x-i)^2+(c_y-j)^2) < myRadius)
             myImage(i, j) = 255;
         end
     end
